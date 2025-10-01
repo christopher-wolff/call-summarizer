@@ -4,14 +4,9 @@ import os
 from pathlib import Path
 from typing import Optional
 
-import dotenv
 import openai
 
 from . import types
-
-
-# Load environment variables
-dotenv.load_dotenv()
 
 _PROMPT_TEMPLATE = """Please provide a comprehensive summary of the following conversation transcript.
 
