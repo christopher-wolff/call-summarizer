@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Test script to demonstrate Pydantic models for transcript files."""
+"""Test script to demonstrate Pydantic types for transcript files."""
 
-from call_summarizer.models import Transcript, TranscriptSegment
+from call_summarizer.types import Transcript, TranscriptSegment
 from call_summarizer.audio_transcription import load_transcript
 
 def test_models():

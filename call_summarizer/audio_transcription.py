@@ -7,7 +7,7 @@ from typing import Optional, Dict, Any
 
 import openai
 
-from .models import Transcript, TranscriptSegment
+from .types import Transcript, TranscriptSegment
 
 
 def transcribe_audio_file(audio_path: str, output_path: str, model: str = "whisper-1") -> bool:
