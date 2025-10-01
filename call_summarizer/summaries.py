@@ -6,7 +6,7 @@ from typing import Optional
 
 import openai
 
-from . import types
+from call_summarizer import types
 
 _PROMPT_TEMPLATE = """Please provide a comprehensive summary of the following conversation transcript.
 
@@ -16,6 +16,14 @@ Key points to include in the summary:
 - Action items or next steps
 - Important details or agreements
 - Overall tone and context
+
+The majority of the summary should be focused on discussions around pricing, if they occur. If they do not discuss pricing of any products, please indicate.
+
+The pricing conversation should take the following output:
+- Pricing offer (ie. what was the amount of money estimated for the Omni products)
+- Reaction to pricing (what was the prospect's feedback on the pricing, if any)
+- Customer of budget, if indicated
+- Pricing comparison to competitors, if any (did the customer tell us what competitor pricing is, and how they felt about). Please specify which competitors, if discussed.
 
 Transcript:
 {transcript_text}

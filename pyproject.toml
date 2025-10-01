@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "call-summarizer"
+version = "0.1.0"
+description = "A tool for analyzing and summarizing sales calls from video files"
+readme = "README.md"
+requires-python = ">=3.8"
+
+[project.scripts]
+call-summarizer = "call_summarizer.run:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["call_summarizer*"]

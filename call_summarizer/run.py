@@ -1,19 +1,61 @@
 #!/usr/bin/env python3
 """Combined script to extract audio from videos and transcribe them."""
 
+from dataclasses import dataclass
 from pathlib import Path
 
 import dotenv
 
-from . import audio_extraction
-from . import audio_transcription
-from . import summaries
+from call_summarizer import audio_extraction
+from call_summarizer import audio_transcription
+from call_summarizer import summaries
 
 
-def extract_audio_from_videos():
+_SUMMARIZATION_PROMPT = """Please provide a comprehensive summary of the following conversation transcript.
+
+Key points to include in the summary:
+- Main topics discussed
+- Key decisions made
+- Action items or next steps
+- Important details or agreements
+- Overall tone and context
+
+The majority of the summary should be focused on discussions around pricing, if they occur. If they do not discuss pricing of any products, please indicate.
+
+The pricing conversation should take the following output:
+- Pricing offer (ie. what was the amount of money estimated for the Omni products)
+- Reaction to pricing (what was the prospect's feedback on the pricing, if any)
+- Customer of budget, if indicated
+- Pricing comparison to competitors, if any (did the customer tell us what competitor pricing is, and how they felt about). Please specify which competitors, if discussed.
+
+Transcript:
+{transcript_text}
+
+Please provide a clear, structured summary that captures the essence of this conversation."""
+
+
+@dataclass
+class _Config:
+    """Configuration for the call summarizer workflow."""
+    
+    # Directory configuration
+    videos_dir: Path
+    audio_dir: Path
+    transcripts_dir: Path
+    summaries_dir: Path
+    
+    # Model configuration
+    transcription_model: str
+    summarization_model: str
+    
+    # Prompt configuration
+    summarization_prompt: str
+
+
+def _extract_audio_from_videos(config: _Config):
     """Extract audio from all video files in data/videos to data/audio."""
-    input_dir = Path("data/videos")
-    output_dir = Path("data/audio")
+    input_dir = config.videos_dir
+    output_dir = config.audio_dir
     
     # Ensure input directory exists
     if not input_dir.exists():
@@ -64,10 +106,10 @@ def extract_audio_from_videos():
     print(f"  Total: {len(video_files)}")
 
 
-def transcribe_audio_files():
+def _transcribe_audio_files(config: _Config):
     """Transcribe all audio files in data/audio to data/transcripts."""
-    input_dir = Path("data/audio")
-    output_dir = Path("data/transcripts")
+    input_dir = config.audio_dir
+    output_dir = config.transcripts_dir
     
     # Ensure input directory exists
     if not input_dir.exists():
@@ -108,7 +150,7 @@ def transcribe_audio_files():
             skipped += 1
             continue
         
-        audio_transcription.transcribe_audio_file(str(audio_file), str(transcript_path))
+        audio_transcription.transcribe_audio_file(str(audio_file), str(transcript_path), config.transcription_model)
         print(f"  ✓ Transcribed to: {transcript_path}")
         successful += 1
     
@@ -118,10 +160,10 @@ def transcribe_audio_files():
     print(f"  Total: {len(audio_files)}")
 
 
-def summarize_transcripts():
+def _summarize_transcripts(config: _Config):
     """Summarize all transcript files in data/transcripts to data/summaries."""
-    input_dir = Path("data/transcripts")
-    output_dir = Path("data/summaries")
+    input_dir = config.transcripts_dir
+    output_dir = config.summaries_dir
     
     # Ensure input directory exists
     if not input_dir.exists():
@@ -156,7 +198,14 @@ def summarize_transcripts():
             skipped += 1
             continue
         
-        summaries.summarize_transcript_file(str(transcript_file), str(summary_path))
+        # Temporarily update the prompt template
+        original_prompt = summaries._PROMPT_TEMPLATE
+        summaries._PROMPT_TEMPLATE = config.summarization_prompt
+        
+        summaries.summarize_transcript_file(str(transcript_file), str(summary_path), config.summarization_model)
+        
+        # Restore original prompt
+        summaries._PROMPT_TEMPLATE = original_prompt
         print(f"  ✓ Summarized to: {summary_path}")
         successful += 1
     
@@ -166,34 +215,46 @@ def summarize_transcripts():
     print(f"  Total: {len(transcript_files)}")
 
 
-def main():
+def _main(config: _Config):
     """Run the complete workflow: extract audio from videos, transcribe, and summarize."""
     print("=== Call Summarizer Workflow ===\n")
     
     # Step 1: Extract audio from videos
     print("Step 1: Extracting audio from videos...")
-    extract_audio_from_videos()
+    _extract_audio_from_videos(config)
     
     print("\n" + "="*50 + "\n")
     
     # Step 2: Transcribe audio files
     print("Step 2: Transcribing audio files...")
-    transcribe_audio_files()
+    _transcribe_audio_files(config)
     
     print("\n" + "="*50 + "\n")
     
     # Step 3: Summarize transcripts
     print("Step 3: Summarizing transcripts...")
-    summarize_transcripts()
+    _summarize_transcripts(config)
     
     print("\n" + "="*50 + "\n")
     print("✅ Workflow completed successfully!")
     print("\nResults:")
-    print("  📁 Audio files: data/audio/")
-    print("  📄 Transcripts: data/transcripts/")
-    print("  📝 Summaries: data/summaries/")
+    print(f"  📁 Audio files: {config.audio_dir}")
+    print(f"  📄 Transcripts: {config.transcripts_dir}")
+    print(f"  📝 Summaries: {config.summaries_dir}")
 
 
 if __name__ == "__main__":
     dotenv.load_dotenv()
-    main()
+    
+    # Create example configuration
+    config = _Config(
+        videos_dir=Path("data/videos"),
+        audio_dir=Path("data/audio"),
+        transcripts_dir=Path("data/transcripts"),
+        summaries_dir=Path("data/summaries"),
+        transcription_model="whisper-1",
+        summarization_model="gpt-3.5-turbo",
+        summarization_prompt=_SUMMARIZATION_PROMPT
+    )
+    
+    _main(config)

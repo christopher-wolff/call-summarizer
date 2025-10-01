@@ -7,7 +7,7 @@ from typing import Any
 
 import openai
 
-from . import types
+from call_summarizer import types
 
 
 def transcribe_audio_file(audio_path: str, output_path: str, model: str = "whisper-1") -> bool:
