@@ -4,9 +4,28 @@ import os
 from pathlib import Path
 from typing import Optional
 
+import dotenv
 import openai
 
 from . import types
+
+
+# Load environment variables
+dotenv.load_dotenv()
+
+_PROMPT_TEMPLATE = """Please provide a comprehensive summary of the following conversation transcript.
+
+Key points to include in the summary:
+- Main topics discussed
+- Key decisions made
+- Action items or next steps
+- Important details or agreements
+- Overall tone and context
+
+Transcript:
+{transcript_text}
+
+Please provide a clear, structured summary that captures the essence of this conversation."""
 
 
 def summarize_transcript(transcript: types.Transcript, model: str = "gpt-3.5-turbo") -> str:
@@ -30,19 +49,7 @@ def summarize_transcript(transcript: types.Transcript, model: str = "gpt-3.5-tur
     client = openai.OpenAI(api_key=api_key)
     
     # Create a prompt for summarization
-    prompt = f"""Please provide a comprehensive summary of the following conversation transcript.
-
-Key points to include in the summary:
-- Main topics discussed
-- Key decisions made
-- Action items or next steps
-- Important details or agreements
-- Overall tone and context
-
-Transcript:
-{transcript.text}
-
-Please provide a clear, structured summary that captures the essence of this conversation."""
+    prompt = _PROMPT_TEMPLATE.format(transcript_text=transcript.text)
 
     response = client.chat.completions.create(
         model=model,
