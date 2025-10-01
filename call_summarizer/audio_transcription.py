@@ -3,11 +3,11 @@
 import json
 import os
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any
 
 import openai
 
-from .types import Transcript, TranscriptSegment
+from . import types
 
 
 def transcribe_audio_file(audio_path: str, output_path: str, model: str = "whisper-1") -> bool:
@@ -67,7 +67,7 @@ def get_transcription_text(transcription_path: str) -> str:
         return data.get('text', '')
 
 
-def get_transcription_metadata(transcription_path: str) -> Dict[str, Any]:
+def get_transcription_metadata(transcription_path: str) -> dict[str, Any]:
     """Get metadata from a transcription file.
     
     Args:
@@ -89,14 +89,14 @@ def get_transcription_metadata(transcription_path: str) -> Dict[str, Any]:
         }
 
 
-def load_transcript(transcription_path: str) -> Transcript:
+def load_transcript(transcription_path: str) -> types.Transcript:
     """Load a transcript file and return a Transcript Pydantic model.
     
     Args:
         transcription_path: Path to the transcription JSON file
         
     Returns:
-        Transcript Pydantic model
+        types.Transcript Pydantic model
         
     Raises:
         FileNotFoundError: If the transcription file doesn't exist
@@ -106,10 +106,10 @@ def load_transcript(transcription_path: str) -> Transcript:
     with open(transcription_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
     
-    return Transcript.model_validate(data)
+    return types.Transcript.model_validate(data)
 
 
-def _get_whisper_transcription(audio_path: str, model: str) -> Optional[Transcript]:
+def _get_whisper_transcription(audio_path: str, model: str) -> types.Transcript:
     """Get transcription from OpenAI Whisper API."""
     
     # Check if API key is available
@@ -130,7 +130,7 @@ def _get_whisper_transcription(audio_path: str, model: str) -> Optional[Transcri
     segments = []
     if hasattr(transcript, 'segments'):
         segments = [
-            TranscriptSegment(
+            types.TranscriptSegment(
                 id=segment.id,
                 start=segment.start,
                 end=segment.end,
@@ -139,7 +139,7 @@ def _get_whisper_transcription(audio_path: str, model: str) -> Optional[Transcri
             for segment in transcript.segments
         ]
     
-    return Transcript(
+    return types.Transcript(
         text=transcript.text,
         language=transcript.language,
         duration=transcript.duration,
@@ -147,7 +147,7 @@ def _get_whisper_transcription(audio_path: str, model: str) -> Optional[Transcri
     )
 
 
-def _save_transcription(transcript: Transcript, output_path: str) -> None:
+def _save_transcription(transcript: types.Transcript, output_path: str) -> None:
     """Save transcription data to a JSON file."""
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(transcript.model_dump(), f, indent=2, ensure_ascii=False)
