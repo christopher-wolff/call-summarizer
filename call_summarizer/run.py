@@ -7,6 +7,7 @@ import dotenv
 
 from . import audio_extraction
 from . import audio_transcription
+from . import summaries
 
 
 def extract_audio_from_videos():
@@ -117,8 +118,56 @@ def transcribe_audio_files():
     print(f"  Total: {len(audio_files)}")
 
 
+def summarize_transcripts():
+    """Summarize all transcript files in data/transcripts to data/summaries."""
+    input_dir = Path("data/transcripts")
+    output_dir = Path("data/summaries")
+    
+    # Ensure input directory exists
+    if not input_dir.exists():
+        raise FileNotFoundError(f"Input directory {input_dir} does not exist")
+    
+    # Create output directory
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Find all transcript files
+    transcript_files = list(input_dir.glob("*.json"))
+    
+    if not transcript_files:
+        print(f"No transcript files found in {input_dir}")
+        return
+    
+    print(f"Found {len(transcript_files)} transcript files")
+    
+    # Process each transcript file
+    successful = 0
+    skipped = 0
+    
+    for transcript_file in transcript_files:
+        print(f"Processing: {transcript_file.name}")
+        
+        # Create output filename with .txt extension
+        summary_filename = transcript_file.stem + "_summary.txt"
+        summary_path = output_dir / summary_filename
+        
+        # Skip if summary already exists
+        if summary_path.exists():
+            print(f"  ⏭ Skipping (summary already exists)")
+            skipped += 1
+            continue
+        
+        summaries.summarize_transcript_file(str(transcript_file), str(summary_path))
+        print(f"  ✓ Summarized to: {summary_path}")
+        successful += 1
+    
+    print(f"\nSummarization Summary:")
+    print(f"  Successful: {successful}")
+    print(f"  Skipped: {skipped}")
+    print(f"  Total: {len(transcript_files)}")
+
+
 def main():
-    """Run the complete workflow: extract audio from videos, then transcribe."""
+    """Run the complete workflow: extract audio from videos, transcribe, and summarize."""
     print("=== Call Summarizer Workflow ===\n")
     
     # Step 1: Extract audio from videos
@@ -132,10 +181,17 @@ def main():
     transcribe_audio_files()
     
     print("\n" + "="*50 + "\n")
+    
+    # Step 3: Summarize transcripts
+    print("Step 3: Summarizing transcripts...")
+    summarize_transcripts()
+    
+    print("\n" + "="*50 + "\n")
     print("✅ Workflow completed successfully!")
     print("\nResults:")
     print("  📁 Audio files: data/audio/")
     print("  📄 Transcripts: data/transcripts/")
+    print("  📝 Summaries: data/summaries/")
 
 
 if __name__ == "__main__":
