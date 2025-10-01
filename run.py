@@ -20,8 +20,7 @@ def extract_audio_from_videos():
     
     # Ensure input directory exists
     if not input_dir.exists():
-        print(f"Error: Input directory {input_dir} does not exist")
-        return False
+        raise FileNotFoundError(f"Input directory {input_dir} does not exist")
     
     # Create output directory
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -37,14 +36,13 @@ def extract_audio_from_videos():
     
     if not video_files:
         print(f"No video files found in {input_dir}")
-        return True
+        return
     
     print(f"Found {len(video_files)} video files")
     
     # Process each video file
     successful = 0
     skipped = 0
-    failed = 0
     
     for video_file in video_files:
         print(f"Processing: {video_file.name}")
@@ -59,22 +57,14 @@ def extract_audio_from_videos():
             skipped += 1
             continue
         
-        success = extract_audio_from_video(str(video_file), str(audio_path))
-        
-        if success:
-            print(f"  ✓ Extracted to: {audio_path}")
-            successful += 1
-        else:
-            print(f"  ✗ Failed to extract audio")
-            failed += 1
+        extract_audio_from_video(str(video_file), str(audio_path))
+        print(f"  ✓ Extracted to: {audio_path}")
+        successful += 1
     
     print(f"\nAudio Extraction Summary:")
     print(f"  Successful: {successful}")
     print(f"  Skipped: {skipped}")
-    print(f"  Failed: {failed}")
     print(f"  Total: {len(video_files)}")
-    
-    return failed == 0
 
 
 def transcribe_audio_files():
@@ -84,8 +74,7 @@ def transcribe_audio_files():
     
     # Ensure input directory exists
     if not input_dir.exists():
-        print(f"Error: Input directory {input_dir} does not exist")
-        return False
+        raise FileNotFoundError(f"Input directory {input_dir} does not exist")
     
     # Create output directory
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -101,14 +90,13 @@ def transcribe_audio_files():
     
     if not audio_files:
         print(f"No audio files found in {input_dir}")
-        return True
+        return
     
     print(f"Found {len(audio_files)} audio files")
     
     # Process each audio file
     successful = 0
     skipped = 0
-    failed = 0
     
     for audio_file in audio_files:
         print(f"Processing: {audio_file.name}")
@@ -123,22 +111,14 @@ def transcribe_audio_files():
             skipped += 1
             continue
         
-        success = transcribe_audio_file(str(audio_file), str(transcript_path))
-        
-        if success:
-            print(f"  ✓ Transcribed to: {transcript_path}")
-            successful += 1
-        else:
-            print(f"  ✗ Failed to transcribe audio")
-            failed += 1
+        transcribe_audio_file(str(audio_file), str(transcript_path))
+        print(f"  ✓ Transcribed to: {transcript_path}")
+        successful += 1
     
     print(f"\nTranscription Summary:")
     print(f"  Successful: {successful}")
     print(f"  Skipped: {skipped}")
-    print(f"  Failed: {failed}")
     print(f"  Total: {len(audio_files)}")
-    
-    return failed == 0
 
 
 def main():
@@ -147,31 +127,21 @@ def main():
     
     # Step 1: Extract audio from videos
     print("Step 1: Extracting audio from videos...")
-    audio_success = extract_audio_from_videos()
-    
-    if not audio_success:
-        print("\n❌ Audio extraction failed. Stopping workflow.")
-        return 1
+    extract_audio_from_videos()
     
     print("\n" + "="*50 + "\n")
     
     # Step 2: Transcribe audio files
     print("Step 2: Transcribing audio files...")
-    transcription_success = transcribe_audio_files()
-    
-    if not transcription_success:
-        print("\n❌ Transcription failed.")
-        return 1
+    transcribe_audio_files()
     
     print("\n" + "="*50 + "\n")
     print("✅ Workflow completed successfully!")
     print("\nResults:")
     print("  📁 Audio files: data/audio/")
     print("  📄 Transcripts: data/transcripts/")
-    
-    return 0
 
 
 if __name__ == "__main__":
     load_dotenv()
-    sys.exit(main())
+    main()
