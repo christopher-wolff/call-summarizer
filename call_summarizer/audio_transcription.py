@@ -7,6 +7,8 @@ from typing import Optional, Dict, Any
 
 import openai
 
+from .models import Transcript, TranscriptSegment
+
 
 def transcribe_audio_file(audio_path: str, output_path: str, model: str = "whisper-1") -> bool:
     """Transcribe an audio file using OpenAI's Whisper API.
@@ -36,13 +38,13 @@ def transcribe_audio_file(audio_path: str, output_path: str, model: str = "whisp
     output_path_obj.parent.mkdir(parents=True, exist_ok=True)
     
     # Get transcription from OpenAI
-    transcription_result = _get_whisper_transcription(audio_path, model)
+    transcript = _get_whisper_transcription(audio_path, model)
     
-    if transcription_result is None:
+    if transcript is None:
         return False
     
     # Save transcription to file
-    _save_transcription(transcription_result, output_path)
+    _save_transcription(transcript, output_path)
     
     return True
 
@@ -87,7 +89,27 @@ def get_transcription_metadata(transcription_path: str) -> Dict[str, Any]:
         }
 
 
-def _get_whisper_transcription(audio_path: str, model: str) -> Optional[Dict[str, Any]]:
+def load_transcript(transcription_path: str) -> Transcript:
+    """Load a transcript file and return a Transcript Pydantic model.
+    
+    Args:
+        transcription_path: Path to the transcription JSON file
+        
+    Returns:
+        Transcript Pydantic model
+        
+    Raises:
+        FileNotFoundError: If the transcription file doesn't exist
+        json.JSONDecodeError: If the file contains invalid JSON
+        ValidationError: If the JSON doesn't match the expected schema
+    """
+    with open(transcription_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    
+    return Transcript.model_validate(data)
+
+
+def _get_whisper_transcription(audio_path: str, model: str) -> Optional[Transcript]:
     """Get transcription from OpenAI Whisper API."""
     
     # Check if API key is available
@@ -104,23 +126,28 @@ def _get_whisper_transcription(audio_path: str, model: str) -> Optional[Dict[str
             response_format="verbose_json"
         )
     
-    return {
-        'text': transcript.text,
-        'language': transcript.language,
-        'duration': transcript.duration,
-        'segments': [
-            {
-                'id': segment.id,
-                'start': segment.start,
-                'end': segment.end,
-                'text': segment.text
-            }
+    # Convert to Pydantic models
+    segments = []
+    if hasattr(transcript, 'segments'):
+        segments = [
+            TranscriptSegment(
+                id=segment.id,
+                start=segment.start,
+                end=segment.end,
+                text=segment.text
+            )
             for segment in transcript.segments
-        ] if hasattr(transcript, 'segments') else []
-    }
+        ]
+    
+    return Transcript(
+        text=transcript.text,
+        language=transcript.language,
+        duration=transcript.duration,
+        segments=segments
+    )
 
 
-def _save_transcription(transcription_data: Dict[str, Any], output_path: str) -> None:
+def _save_transcription(transcript: Transcript, output_path: str) -> None:
     """Save transcription data to a JSON file."""
     with open(output_path, 'w', encoding='utf-8') as f:
-        json.dump(transcription_data, f, indent=2, ensure_ascii=False)
+        json.dump(transcript.model_dump(), f, indent=2, ensure_ascii=False)
