@@ -35,7 +35,9 @@ This is a simple tool that automatically summarizes video calls.
    ```
 
 4. **Install FFmpeg:**
-   - **macOS:** `brew install ffmpeg`
+   ```
+   brew install ffmpeg
+   ```
 
 5. **Set up your OpenAI API key:**
    ```bash
