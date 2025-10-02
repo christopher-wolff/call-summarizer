@@ -29,7 +29,7 @@ class PipelineProgress:
             TimeElapsedColumn(),
             console=self.console,
             expand=True,
-            refresh_per_second=10
+            refresh_per_second=2
         )
         
         self.transcription_progress = Progress(
@@ -40,7 +40,7 @@ class PipelineProgress:
             TimeElapsedColumn(),
             console=self.console,
             expand=True,
-            refresh_per_second=10
+            refresh_per_second=2
         )
         
         self.summarization_progress = Progress(
@@ -51,7 +51,7 @@ class PipelineProgress:
             TimeElapsedColumn(),
             console=self.console,
             expand=True,
-            refresh_per_second=10
+            refresh_per_second=2
         )
         
         # Task tracking
@@ -107,7 +107,7 @@ class PipelineProgress:
     
     def start(self):
         """Start the live progress display."""
-        self.live = Live(self.layout, console=self.console, refresh_per_second=10, transient=True)
+        self.live = Live(self.layout, console=self.console, refresh_per_second=2, transient=True)
         self.live.start()
     
     def stop(self):
@@ -165,7 +165,7 @@ class PipelineProgress:
                     TimeElapsedColumn(),
                     console=self.console,
                     expand=True,
-                    refresh_per_second=10
+                    refresh_per_second=2
                 )
                 self.transcription_progress.start()
                 self.layout["transcription"].update(Panel(
@@ -213,7 +213,7 @@ class PipelineProgress:
                     TimeElapsedColumn(),
                     console=self.console,
                     expand=True,
-                    refresh_per_second=10
+                    refresh_per_second=2
                 )
                 self.summarization_progress.start()
                 self.layout["summarization"].update(Panel(
