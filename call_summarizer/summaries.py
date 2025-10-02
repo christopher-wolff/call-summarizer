@@ -40,7 +40,10 @@ def summarize_transcript(transcript: types.Transcript, prompt_template: str, mod
         ],
     )
     
-    return response.choices[0].message.content
+    content = response.choices[0].message.content
+    if content is None:
+        raise ValueError("OpenAI API returned empty content")
+    return content
 
 
 def summarize_transcript_file(transcript_path: str, output_path: str, prompt_template: str, model: str = "gpt-3.5-turbo") -> bool:

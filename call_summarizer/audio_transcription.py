@@ -128,7 +128,7 @@ def _get_whisper_transcription(audio_path: str, model: str) -> types.Transcript:
     
     # Convert to Pydantic models
     segments = []
-    if hasattr(transcript, 'segments'):
+    if hasattr(transcript, 'segments') and transcript.segments is not None:
         segments = [
             types.TranscriptSegment(
                 id=segment.id,
