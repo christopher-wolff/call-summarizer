@@ -38,8 +38,6 @@ def summarize_transcript(transcript: types.Transcript, prompt_template: str, mod
             {"role": "system", "content": "You are a helpful assistant that creates clear, comprehensive summaries of business conversations and meetings."},
             {"role": "user", "content": prompt}
         ],
-        max_tokens=1000,
-        temperature=0.3
     )
     
     return response.choices[0].message.content
