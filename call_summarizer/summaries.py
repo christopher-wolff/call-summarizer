@@ -8,34 +8,12 @@ import openai
 
 from call_summarizer import types
 
-_PROMPT_TEMPLATE = """Please provide a comprehensive summary of the following conversation transcript.
-
-Key points to include in the summary:
-- Main topics discussed
-- Key decisions made
-- Action items or next steps
-- Important details or agreements
-- Overall tone and context
-
-The majority of the summary should be focused on discussions around pricing, if they occur. If they do not discuss pricing of any products, please indicate.
-
-The pricing conversation should take the following output:
-- Pricing offer (ie. what was the amount of money estimated for the Omni products)
-- Reaction to pricing (what was the prospect's feedback on the pricing, if any)
-- Customer of budget, if indicated
-- Pricing comparison to competitors, if any (did the customer tell us what competitor pricing is, and how they felt about). Please specify which competitors, if discussed.
-
-Transcript:
-{transcript_text}
-
-Please provide a clear, structured summary that captures the essence of this conversation."""
-
-
-def summarize_transcript(transcript: types.Transcript, model: str = "gpt-3.5-turbo") -> str:
+def summarize_transcript(transcript: types.Transcript, prompt_template: str, model: str = "gpt-3.5-turbo") -> str:
     """Generate a summary of a transcript using ChatGPT.
     
     Args:
         transcript: The transcript to summarize
+        prompt_template: The prompt template to use for summarization (should contain {transcript_text})
         model: OpenAI model to use for summarization (default: gpt-3.5-turbo)
         
     Returns:
@@ -52,7 +30,7 @@ def summarize_transcript(transcript: types.Transcript, model: str = "gpt-3.5-tur
     client = openai.OpenAI(api_key=api_key)
     
     # Create a prompt for summarization
-    prompt = _PROMPT_TEMPLATE.format(transcript_text=transcript.text)
+    prompt = prompt_template.format(transcript_text=transcript.text)
 
     response = client.chat.completions.create(
         model=model,
@@ -67,12 +45,13 @@ def summarize_transcript(transcript: types.Transcript, model: str = "gpt-3.5-tur
     return response.choices[0].message.content
 
 
-def summarize_transcript_file(transcript_path: str, output_path: str, model: str = "gpt-3.5-turbo") -> bool:
+def summarize_transcript_file(transcript_path: str, output_path: str, prompt_template: str, model: str = "gpt-3.5-turbo") -> bool:
     """Summarize a transcript file and save the result.
     
     Args:
         transcript_path: Path to the transcript JSON file
         output_path: Path where the summary should be saved
+        prompt_template: The prompt template to use for summarization (should contain {transcript_text})
         model: OpenAI model to use for summarization
         
     Returns:
@@ -98,7 +77,7 @@ def summarize_transcript_file(transcript_path: str, output_path: str, model: str
     transcript = types.Transcript.model_validate_json(transcript_path_obj.read_text(encoding='utf-8'))
     
     # Generate summary
-    summary_text = summarize_transcript(transcript, model)
+    summary_text = summarize_transcript(transcript, prompt_template, model)
     
     # Save summary to file
     output_path_obj.write_text(summary_text, encoding='utf-8')
