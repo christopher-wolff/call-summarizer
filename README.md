@@ -42,8 +42,8 @@ This is a simple tool that automatically summarizes video calls.
 5. **Set up your OpenAI API key:**
    ```bash
    cp env_template.txt .env
-   # Edit .env and add your OpenAI API key
    ```
+   Then, edit `.env` and add your OpenAI API key.
 
 ### Usage
 
