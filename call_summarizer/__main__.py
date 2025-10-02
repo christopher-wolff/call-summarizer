@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import hashlib
 import json
+import os
 import subprocess
 import time
 
@@ -689,15 +690,26 @@ def _main(config: _Config):
     finally:
         progress.stop()
         # Give Rich time to clean up the display
-        time.sleep(0.1)
+        time.sleep(0.2)
     
-    # Clear any remaining Rich output and show clean final results
-    print("\n" * 2)  # Add some spacing
+    # Clear screen and show clean final results
+    os.system('clear' if os.name == 'posix' else 'cls')
+    
     print("✅ Workflow completed successfully!")
     print("\nResults:")
     print(f"  📁 Audio files: {config.audio_dir}")
     print(f"  📄 Transcripts: {config.transcripts_dir}")
     print(f"  📝 Summaries: {config.summaries_dir}")
+    
+    # Show final summary table again in clean format
+    print("\n" + "="*60)
+    print("PIPELINE SUMMARY")
+    print("="*60)
+    print(f"Audio Extraction:     {audio_results.successful} successful, {audio_results.failed} failed, {audio_results.skipped} skipped")
+    print(f"Transcription:        {transcription_results.successful} successful, {transcription_results.failed} failed, {transcription_results.skipped} skipped")
+    print(f"Summarization:        {summarization_results.successful} successful, {summarization_results.failed} failed, {summarization_results.skipped} skipped")
+    print(f"Overall Success Rate: {((audio_results.successful + transcription_results.successful + summarization_results.successful) / (audio_results.total + transcription_results.total + summarization_results.total) * 100):.1f}%")
+    print("="*60)
 
 
 if __name__ == "__main__":
