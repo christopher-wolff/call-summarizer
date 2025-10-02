@@ -51,7 +51,7 @@ This is a simple tool that automatically summarizes video calls.
 
 2. **Run the complete workflow:**
    ```bash
-   python call_summarizer/run.py
+   python -m call_summarizer
    ```
 
    This will:
