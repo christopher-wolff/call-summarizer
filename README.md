@@ -18,7 +18,7 @@ This is a simple tool that automatically summarizes video calls.
 
 1. **Clone the repository:**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/christopher-wolff/call-summarizer.git
    cd call-summarizer
    ```
 
